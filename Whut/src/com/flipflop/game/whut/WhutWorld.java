@@ -28,7 +28,8 @@ public class WhutWorld implements World {
 
 	@Override
 	public void init() {
-		this.entities.add(new FractalTerrain(this, 64));
+		//this.entities.add(new FractalTerrain(this, 64));
+		this.entities.add(new Glitch(this));
 	}
 
 	@Override

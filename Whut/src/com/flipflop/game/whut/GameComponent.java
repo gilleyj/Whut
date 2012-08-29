@@ -66,7 +66,7 @@ public abstract class GameComponent extends Canvas implements Runnable{
 			if (delta > (1000/65)) {
 				lastTime = System.currentTimeMillis();
 				g.setColor(Color.black);
-				g.setBackground(Color.black);
+				g.setBackground(Color.gray);
 				g.clearRect(0, 0, this.getWidth(), this.getHeight());
 				this.update(delta);
 				this.render(g);

@@ -10,14 +10,16 @@ import java.awt.image.BufferStrategy;
 
 public abstract class GameComponent extends Canvas implements Runnable{
 	private static final long serialVersionUID = 7896446093560185240L;
-	private Dimension gameSize = new Dimension(500,500);
 	protected Container parent = null;
-	protected BufferStrategy bufferStrategy = null;
 	protected World world = null;
+	protected InputManager im = null;
+	protected BufferStrategy bufferStrategy = null;
+	private Dimension gameSize = new Dimension(500,500);
 	protected boolean gameRunning = false;
 	
 	public GameComponent(Container parent) {
 		this.parent = parent;
+		this.im = new InputManager();
 	}
 
 	public abstract void render(Graphics g);
@@ -35,6 +37,7 @@ public abstract class GameComponent extends Canvas implements Runnable{
 	 * Initialize any components the game has.  <code>super.init()</code> must be called <strong>after</strong> the owning window has been made visible.
 	 */
 	public void init() {
+		this.parent.addKeyListener(this.im);
 		this.parent.setIgnoreRepaint(true);
 		this.createBufferStrategy(2);
 		this.bufferStrategy = this.getBufferStrategy();

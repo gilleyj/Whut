@@ -80,7 +80,7 @@ public abstract class GameComponent extends Canvas implements Runnable{
 				
 			} else {
 				try {
-					Thread.sleep(0, 1000);
+					Thread.sleep(5, 0);
 				} catch (InterruptedException e) {}
 			}
 			

@@ -56,6 +56,7 @@ public class Whut extends GameComponent {
 		super.init();
 		super.setGameSize(512, 512);
 		super.parent.addComponentListener(new WhutWindowListener(this));
+		super.setFocusTraversalKeysEnabled(false);
 		super.world = new WhutWorld(this);
 		super.world.init();
 	}
@@ -63,6 +64,7 @@ public class Whut extends GameComponent {
 	@Override
 	public void prepare() {
 		super.world.start();
+		super.parent.requestFocusInWindow();
 	}
 
 	@Override

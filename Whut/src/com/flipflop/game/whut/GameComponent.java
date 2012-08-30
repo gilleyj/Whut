@@ -19,7 +19,7 @@ public abstract class GameComponent extends Canvas implements Runnable{
 	
 	public GameComponent(Container parent) {
 		this.parent = parent;
-		this.im = new InputManager();
+		this.im = new InputManager(this.parent);
 	}
 
 	public abstract void render(Graphics g);
@@ -34,13 +34,13 @@ public abstract class GameComponent extends Canvas implements Runnable{
 	public abstract void update(long tm);
 
 	/**
-	 * Initialize any components the game has.  <code>super.init()</code> must be called <strong>after</strong> the owning window has been made visible.
+	 * Initialize any components the game has.  <code>.init()</code> must be called <strong>after</strong> the owning window has been made visible.
 	 */
 	public void init() {
-		this.parent.addKeyListener(this.im);
 		this.parent.setIgnoreRepaint(true);
 		this.createBufferStrategy(2);
 		this.bufferStrategy = this.getBufferStrategy();
+		System.out.println("Using " + this.bufferStrategy.getClass().getSimpleName());
 	}
 	/**
 	 * Let the game know that execution has begun.  Let the game take any necessary pre-cautions.

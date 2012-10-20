@@ -7,8 +7,6 @@ import java.awt.event.MouseMotionListener;
 
 import javax.vecmath.Vector2d;
 
-import com.flipflop.game.whut.MouseInput.MouseInfo.ClickInfo;
-
 public class MouseInput implements MouseListener, MouseMotionListener {
 	public enum MouseState {
 		LEFT_CLICKING, RIGHT_CLICKING, MIDDLE_CLICKING, LEFT_RIGHT_CLICKING, RELEASED
@@ -163,6 +161,32 @@ public class MouseInput implements MouseListener, MouseMotionListener {
 	public void mouseExited(MouseEvent e) {
 		// TODO Auto-generated method stub
 
+	}
+	
+	/**
+	 * Return the state of the mouse in a readable String
+	 * @return The current state of the mouse
+	 */
+	public String mouseStatus() {
+		String mouseState = "";
+		switch (this.mouseInfo.getLatestState()) {
+		case LEFT_CLICKING:
+			mouseState = "LEFT DOWN";
+			break;
+		case LEFT_RIGHT_CLICKING:
+			mouseState = "LEFT AND RIGHT DOWN";
+			break;
+		case MIDDLE_CLICKING:
+			mouseState = "MIDDLE DOWN";
+			break;
+		case RELEASED:
+			mouseState = "NOTHING DOWN";
+			break;
+		case RIGHT_CLICKING:
+			mouseState = "RIGHT DOWN";
+			break;
+		}
+		return mouseState;
 	}
 
 }

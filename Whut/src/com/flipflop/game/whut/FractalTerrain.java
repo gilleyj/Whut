@@ -4,8 +4,11 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
 import java.awt.image.DataBufferInt;
+import java.awt.image.WritableRaster;
 
 public class FractalTerrain implements Entity {
 	private World world;
@@ -25,9 +28,9 @@ public class FractalTerrain implements Entity {
 		this.width = closestWidth;
 		this.array = new float[(this.width + 1) * (this.width + 1)];
 
-		this.bi = new BufferedImage(this.world.getGame().getWidth(), this.world
-				.getGame().getHeight(), BufferedImage.TYPE_INT_ARGB);
-
+		this.bi = new BufferedImage(ColorModel.getRGBdefault(), WritableRaster.createBandedRaster(BufferedImage.TYPE_INT_ARGB,  
+				this.world.getGame().getWidth(), this.world.getGame().getHeight(), 4, new Point(0,0)),
+				false, null);
 		Fractal.fill2DFractal(this.array, this.width, 1, 1, 0.8f);
 	}
 

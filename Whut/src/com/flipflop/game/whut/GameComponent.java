@@ -1,6 +1,5 @@
 package com.flipflop.game.whut;
 
-import java.awt.BufferCapabilities;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Container;
@@ -8,9 +7,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
-import java.awt.ImageCapabilities;
 import java.awt.image.BufferStrategy;
 import java.awt.image.VolatileImage;
 import java.util.logging.Logger;
@@ -35,8 +32,6 @@ public abstract class GameComponent extends Canvas implements Runnable {
 	private static final int SLEEP_NS = 0;
 	// The "container" of the drawable window (this, hopefully)
 	protected Container parent = null;
-	// The world object to update and render
-	protected World world = null;
 	// The manager of inputs
 	protected InputManager im = null;
 	// The buffer strategy is the "drawable" part of the drawable window
@@ -53,52 +48,25 @@ public abstract class GameComponent extends Canvas implements Runnable {
 	private int fps = 0;
 
 	public GameComponent(Container parent) {
-		System.setProperty("sun.java2d.opengl", "true");
-		System.setProperty("apple.awt.graphics.UseQuartz", "true");
-		System.setProperty("apple.awt.graphics.EnableQ2DX", "true");
+		// Set up this class's logger as the root and attach a simple console format
 		LogUtil.initRootLogger(logger);
 		this.parent = parent;
 		this.gc = GraphicsEnvironment.getLocalGraphicsEnvironment()
 				.getDefaultScreenDevice().getDefaultConfiguration();
-		GraphicsDevice[] devices = GraphicsEnvironment
-				.getLocalGraphicsEnvironment().getScreenDevices();
-		logger.info(devices.length + " graphics devices.");
-		for (GraphicsDevice device : devices) {
-			GraphicsConfiguration[] configurations = device.getConfigurations();
-			logger.info("Device: " + device.getIDstring());
-			logger.info("\tAccelerate memory: "
-					+ device.getAvailableAcceleratedMemory());
-			logger.info("\tSupport full-screen:"
-					+ device.isFullScreenSupported());
-			logger.info("\tConfigurations: " + configurations.length);
-			logger.info("\tDefault config: " + device.getDefaultConfiguration());
-			for (GraphicsConfiguration config : configurations) {
-				BufferCapabilities bc = config.getBufferCapabilities();
-				logger.info("\t\tIs fullscreen RQ'd: "
-						+ bc.isFullScreenRequired());
-				logger.info("\t\tIs multi-buffer AVLBL: "
-						+ bc.isMultiBufferAvailable());
-				logger.info("\t\tIs page flipping: " + bc.isPageFlipping());
-				logger.info("\t\tConfiguration (BACK): " + config.toString());
-				ImageCapabilities bb = config.getBufferCapabilities()
-						.getBackBufferCapabilities();
-				logger.info("\t\t\tIs accelerated: " + bb.isAccelerated());
-				logger.info("\t\t\tIs volatile: " + bb.isTrueVolatile());
-				logger.info("\t\tConfiguration (FRONT): " + config.toString());
-				ImageCapabilities fc = config.getBufferCapabilities()
-						.getFrontBufferCapabilities();
-				logger.info("\t\t\tIs accelerated: " + fc.isAccelerated());
-				logger.info("\t\t\tIs volatile: " + fc.isTrueVolatile());
-			}
-		}
+		
+		// Attach the input manager to the canvas because that's what the user will interact with.
 		this.im = new InputManager(this);
 	}
 
+	/**
+	 * A game should implement this function to draw into the Graphics object, including all entities in the world.  This will be called periodically, with no promise of time elapsed.  Any logic should be implemented in {@link GameComponent#update(long)}.
+	 * @param g The arbitrary drawing interface that needs to be drawn on.
+	 */
 	public abstract void render(Graphics g);
 
 	/**
 	 * Update the game with a duration <code>tm</code> in milliseconds. This
-	 * should be the method called within the game loop.
+	 * will be the method called within the game loop.  Update any business logic in this method.
 	 * 
 	 * @param tm
 	 *            The time in milliseconds to update the game with
@@ -106,8 +74,8 @@ public abstract class GameComponent extends Canvas implements Runnable {
 	public abstract void update(long tm);
 
 	/**
-	 * Initialize any components the game has. <code>.init()</code> must be
-	 * called <strong>after</strong> the owning window has been made visible.
+	 * Initialize any components the game has. {@link #init()} must be
+	 * called <strong>after</strong> the owning window (indicated by the constructor {@link #GameComponent(Container)}) has been made visible.
 	 */
 	public void init() {
 		this.parent.setIgnoreRepaint(true);
@@ -221,13 +189,6 @@ public abstract class GameComponent extends Canvas implements Runnable {
 	@Override
 	public Dimension getPreferredSize() {
 		return this.gameSize;
-	}
-
-	public void changeWorld(World world) {
-		this.world.stop();
-		this.world = world;
-		this.world.init();
-		this.world.start();
 	}
 
 	public int getFPS() {

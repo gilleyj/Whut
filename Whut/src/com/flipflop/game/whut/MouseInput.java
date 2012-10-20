@@ -7,6 +7,8 @@ import java.awt.event.MouseMotionListener;
 
 import javax.vecmath.Vector2d;
 
+import com.flipflop.game.whut.MouseInput.MouseInfo.ClickInfo;
+
 public class MouseInput implements MouseListener, MouseMotionListener {
 	public enum MouseState {
 		LEFT_CLICKING, RIGHT_CLICKING, MIDDLE_CLICKING, LEFT_RIGHT_CLICKING, RELEASED
@@ -14,6 +16,7 @@ public class MouseInput implements MouseListener, MouseMotionListener {
 
 	public class MouseInfo {
 		public static final int MOUSE_POINT_HISTORY_SIZE = 100;
+		public static final int MOUSE_CLICK_HISTORY_SIZE = 10;
 
 		public class PointInfo {
 			public Point point;
@@ -24,13 +27,23 @@ public class MouseInput implements MouseListener, MouseMotionListener {
 				this.since = time;
 			}
 		}
+		
+		public class ClickInfo {
+			public MouseState state;
+			public long since;
+			
+			public ClickInfo(MouseState state, long time) {
+				this.state = state;
+				this.since = time;
+			}
+		}
 
-		public MouseState state;
 		public Shelf<PointInfo> pointHistory;
+		public Shelf<ClickInfo> clickHistory;
 		public Vector2d velocity;
 
 		public MouseInfo() {
-			this.state = MouseState.RELEASED;
+			this.clickHistory = new Shelf<ClickInfo>(MOUSE_CLICK_HISTORY_SIZE);
 			this.pointHistory = new Shelf<PointInfo>(MOUSE_POINT_HISTORY_SIZE);
 			this.velocity = new Vector2d(0, 0);
 		}
@@ -48,9 +61,27 @@ public class MouseInput implements MouseListener, MouseMotionListener {
 			else
 				return 0;
 		}
+		
+		public MouseState getLatestState() {
+			if (this.clickHistory.size() > 0)
+				return this.clickHistory.peekFirst().state;
+			else 
+				return MouseState.RELEASED;
+		}
+		
+		public long getLatestStateTime() {
+			if (this.clickHistory.size() > 0) 
+				return this.clickHistory.peekFirst().since;
+			else
+				return 0;
+		}
 
 		public void addPointInfo(Point point, long time) {
 			this.pointHistory.addFirst(new PointInfo(point, time));
+		}
+		
+		public void addClickInfo(MouseState state, long time) {
+			this.clickHistory.addFirst(new ClickInfo(state, time));
 		}
 	}
 
@@ -81,44 +112,44 @@ public class MouseInput implements MouseListener, MouseMotionListener {
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		// OMG NO!!
+		// OMG, NO!!
 	}
 
 	@Override
 	public void mousePressed(MouseEvent e) {
 		if (e.getButton() == MouseEvent.BUTTON1) {
-			if (this.mouseInfo.state == MouseState.RIGHT_CLICKING) {
-				this.mouseInfo.state = MouseState.LEFT_RIGHT_CLICKING;
+			if (this.mouseInfo.getLatestState() == MouseState.RIGHT_CLICKING) {
+				this.mouseInfo.addClickInfo(MouseState.LEFT_RIGHT_CLICKING, System.currentTimeMillis());
 			} else {
-				this.mouseInfo.state = MouseState.LEFT_CLICKING;
+				this.mouseInfo.addClickInfo(MouseState.LEFT_CLICKING, System.currentTimeMillis());
 			}
 		} else if (e.getButton() == MouseEvent.BUTTON3) {
-			if (this.mouseInfo.state == MouseState.LEFT_CLICKING) {
-				this.mouseInfo.state = MouseState.LEFT_RIGHT_CLICKING;
+			if (this.mouseInfo.getLatestState() == MouseState.LEFT_CLICKING) {
+				this.mouseInfo.addClickInfo(MouseState.LEFT_RIGHT_CLICKING, System.currentTimeMillis());
 			} else {
-				this.mouseInfo.state = MouseState.RIGHT_CLICKING;
+				this.mouseInfo.addClickInfo(MouseState.RIGHT_CLICKING, System.currentTimeMillis());
 			}
 		} else if (e.getButton() == MouseEvent.BUTTON2) {
-			this.mouseInfo.state = MouseState.MIDDLE_CLICKING;
+			this.mouseInfo.addClickInfo(MouseState.MIDDLE_CLICKING, System.currentTimeMillis());
 		}
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		if (e.getButton() == MouseEvent.BUTTON1) {
-			if (this.mouseInfo.state == MouseState.LEFT_RIGHT_CLICKING) {
-				this.mouseInfo.state = MouseState.RIGHT_CLICKING;
+			if (this.mouseInfo.getLatestState() == MouseState.LEFT_RIGHT_CLICKING) {
+				this.mouseInfo.addClickInfo(MouseState.RIGHT_CLICKING, System.currentTimeMillis());
 			} else {
-				this.mouseInfo.state = MouseState.RELEASED;
+				this.mouseInfo.addClickInfo(MouseState.RELEASED, System.currentTimeMillis());
 			}
 		} else if (e.getButton() == MouseEvent.BUTTON3) {
-			if (this.mouseInfo.state == MouseState.LEFT_RIGHT_CLICKING) {
-				this.mouseInfo.state = MouseState.LEFT_CLICKING;
+			if (this.mouseInfo.getLatestState() == MouseState.LEFT_RIGHT_CLICKING) {
+				this.mouseInfo.addClickInfo(MouseState.LEFT_CLICKING, System.currentTimeMillis());
 			} else {
-				this.mouseInfo.state = MouseState.RELEASED;
+				this.mouseInfo.addClickInfo(MouseState.RELEASED, System.currentTimeMillis());
 			}
 		} else if (e.getButton() == MouseEvent.BUTTON2) {
-			this.mouseInfo.state = MouseState.RELEASED;
+			this.mouseInfo.addClickInfo(MouseState.RELEASED, System.currentTimeMillis());
 		}
 	}
 

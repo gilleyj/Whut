@@ -21,7 +21,7 @@ public abstract class GameComponent extends Canvas implements Runnable {
 	// Utility for managing loggable information
 	private static final Logger logger = Logger.getLogger("com");
 	// Target frames per second
-	private static final int DEFAULT_FPS = 50;
+	private static final int DEFAULT_FPS = 100;
 	// Number of frames to analyze for averaging fps
 	private static final int FPS_AVG_HISTORY = 20;
 	// How often to check the average
@@ -161,6 +161,9 @@ public abstract class GameComponent extends Canvas implements Runnable {
 				g.setBackground(bgColor);
 				// Clear drawing area so no "leftovers".
 				g.clearRect(0, 0, this.getWidth(), this.getHeight());
+				
+				// Poll the inputs (some are synchronous, some are asynchronous...)
+				this.im.poll();
 				// Update the game with time elapsed
 				this.update(delta);
 				// Then render the updated game.
@@ -193,9 +196,8 @@ public abstract class GameComponent extends Canvas implements Runnable {
 	private void renderDebug(Graphics2D g) {
 		int x = this.getWidth() / 2;
 		int y = this.getHeight() / 2;
-		Vector2d vector = (Vector2d) this.im.mouseInput.mouseInfo.velocity
-				.clone();
-		vector.scale(0.1D);
+		Vector2d vector = this.im.mouseInput.getAverageMouseVector();
+//		vector.scale(10.D);
 		g.setColor(Color.GREEN);
 		g.drawLine(x, y, (int) vector.x + x, (int) vector.y + y);
 		g.drawString("Mouse vector: (" + vector.x + ", " + vector.y + ")", 0,

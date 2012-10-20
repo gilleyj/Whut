@@ -4,7 +4,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.logging.Logger;
 
-public class KeyboardInput implements KeyListener {
+public class KeyboardInput implements KeyListener, InputDevice {
 	private static final Logger logger = Logger.getLogger(KeyboardInput.class.getName());
 	public enum KeyState {
 		PRESSED,
@@ -62,6 +62,9 @@ public class KeyboardInput implements KeyListener {
 	@Override
 	public void keyTyped(KeyEvent e) {
 		// No one cares, Java.
+	}
+	
+	public void poll() {
 	}
 
 }

@@ -41,13 +41,11 @@ public class Whut extends GameComponent {
 	@Override
 	public void render(Graphics g) {
 		super.world.render(g);
-		g.drawString("FPS: "+String.valueOf(fps), 0, 20);
+		g.drawString("FPS: "+String.valueOf(super.getFPS()), 0, 20);
 	}
 	
-	private static float fps;
 	@Override
 	public void update(long tm) {
-		fps = 1000/tm;
 		super.world.update(tm);
 	}
 

@@ -2,36 +2,50 @@ package com.flipflop.game.whut;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.logging.Logger;
 
 public class KeyboardInput implements KeyListener {
-	
+	private static final Logger logger = Logger.getLogger(KeyboardInput.class.getName());
 	public enum KeyState {
-		PRESSED_ONCE,
 		PRESSED,
 		RELEASED;
 	}
 	
-	private static final int KEY_COUNT = 256;
-	private KeyState[] keyStates = new KeyState[KEY_COUNT];
-	
-	public KeyboardInput() {
-		for (int i=0; i<KEY_COUNT; i++) {
-			keyStates[i] = KeyState.RELEASED;
+	public class KeyInfo {
+		public KeyState keyState;
+		public long pressedSince;
+		
+		public KeyInfo() {
+			this.keyState = KeyState.RELEASED;
+			this.pressedSince = 0;
 		}
 	}
 	
-	public boolean keyPressed(int keyCode) {
-		return false;
+	private static final int KEY_COUNT = 256;
+	private KeyInfo[] keysInfo = new KeyInfo[KEY_COUNT];
+	
+	public KeyboardInput() {
+		for (int i=0; i<KEY_COUNT; i++) {
+			keysInfo[i] = new KeyInfo();
+		}
+	}
+	
+	public boolean isKeyPressed(int keyCode) {
+		if (keyCode >= 0 && keyCode < KEY_COUNT) {
+			return (keysInfo[keyCode].keyState==KeyState.PRESSED?true:false);
+		} else {
+			return false;
+		}
 	}
 
 	@Override
 	public void keyPressed(KeyEvent e) {
 		int code = e.getKeyCode();
 		if (code >= 0 && code < KEY_COUNT) {
-			if (keyStates[code] == KeyState.PRESSED_ONCE)
-				keyStates[code] = KeyState.PRESSED;
-			else if (keyStates[code] == KeyState.RELEASED)
-				keyStates[code] = KeyState.PRESSED_ONCE;
+			if (keysInfo[code].keyState == KeyState.RELEASED) {
+				keysInfo[code].keyState = KeyState.PRESSED;
+				keysInfo[code].pressedSince = System.currentTimeMillis();
+			}
 		}
 	}
 
@@ -39,7 +53,9 @@ public class KeyboardInput implements KeyListener {
 	public void keyReleased(KeyEvent e) {
 		int code = e.getKeyCode();
 		if (code >= 0 && code < KEY_COUNT) {
-			keyStates[code] = KeyState.RELEASED;
+			logger.info(e.getKeyChar() + " (" + e.getKeyCode() + ") pressed for " + (System.currentTimeMillis() - keysInfo[code].pressedSince));
+			keysInfo[code].keyState = KeyState.RELEASED;
+			keysInfo[code].pressedSince = 0;
 		}
 	}
 

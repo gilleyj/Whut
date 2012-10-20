@@ -1,5 +1,6 @@
 package com.flipflop.game.whut;
 
+import java.awt.BufferCapabilities;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Container;
@@ -7,29 +8,90 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
-import java.awt.RenderingHints;
+import java.awt.ImageCapabilities;
 import java.awt.image.BufferStrategy;
 import java.awt.image.VolatileImage;
+import java.util.logging.Logger;
+
+import javax.vecmath.Vector2d;
 
 public abstract class GameComponent extends Canvas implements Runnable {
+	// Java Bullshit
 	private static final long serialVersionUID = 7896446093560185240L;
-	private static final int DEFAULT_FPS = 60;
+	// Utility for managing loggable information
+	private static final Logger logger = Logger.getLogger("com");
+	// Target frames per second
+	private static final int DEFAULT_FPS = 50;
+	// Number of frames to analyze for averaging fps
+	private static final int FPS_AVG_HISTORY = 20;
+	// How often to check the average
+	private static final int FPS_INTERVAL_MS = 1000;
+	// How many milliseconds to sleep between frames
+	private static final int SLEEP_MS = 5;
+	// How many nanoseconds to sleep between frams (in addition to the
+	// milliseconds)
+	private static final int SLEEP_NS = 0;
+	// The "container" of the drawable window (this, hopefully)
 	protected Container parent = null;
+	// The world object to update and render
 	protected World world = null;
+	// The manager of inputs
 	protected InputManager im = null;
-	protected BufferStrategy bufferStrategy = null;
-	protected VolatileImage volatileBuffer = null;
-	protected GraphicsConfiguration gc = null;
+	// The buffer strategy is the "drawable" part of the drawable window
+	private BufferStrategy bufferStrategy = null;
+	// Ugh, just...I don't know. Don't use this.
+	private VolatileImage volatileBuffer = null;
+	// GraphicsConfiguration is like window settings
+	private GraphicsConfiguration gc = null;
+	// The drawable window's size
 	private Dimension gameSize = new Dimension(500, 500);
-	protected boolean gameRunning = false;
+	// Control for the game loop
+	private boolean gameRunning = false;
+	// Used to provide this information to subclasses.
+	private int fps = 0;
 
 	public GameComponent(Container parent) {
+		System.setProperty("sun.java2d.opengl", "true");
+		System.setProperty("apple.awt.graphics.UseQuartz", "true");
+		System.setProperty("apple.awt.graphics.EnableQ2DX", "true");
+		LogUtil.initRootLogger(logger);
 		this.parent = parent;
 		this.gc = GraphicsEnvironment.getLocalGraphicsEnvironment()
-				.getDefaultScreenDevice()
-				.getDefaultConfiguration();
-		this.im = new InputManager(this.parent);
+				.getDefaultScreenDevice().getDefaultConfiguration();
+		GraphicsDevice[] devices = GraphicsEnvironment
+				.getLocalGraphicsEnvironment().getScreenDevices();
+		logger.info(devices.length + " graphics devices.");
+		for (GraphicsDevice device : devices) {
+			GraphicsConfiguration[] configurations = device.getConfigurations();
+			logger.info("Device: " + device.getIDstring());
+			logger.info("\tAccelerate memory: "
+					+ device.getAvailableAcceleratedMemory());
+			logger.info("\tSupport full-screen:"
+					+ device.isFullScreenSupported());
+			logger.info("\tConfigurations: " + configurations.length);
+			logger.info("\tDefault config: " + device.getDefaultConfiguration());
+			for (GraphicsConfiguration config : configurations) {
+				BufferCapabilities bc = config.getBufferCapabilities();
+				logger.info("\t\tIs fullscreen RQ'd: "
+						+ bc.isFullScreenRequired());
+				logger.info("\t\tIs multi-buffer AVLBL: "
+						+ bc.isMultiBufferAvailable());
+				logger.info("\t\tIs page flipping: " + bc.isPageFlipping());
+				logger.info("\t\tConfiguration (BACK): " + config.toString());
+				ImageCapabilities bb = config.getBufferCapabilities()
+						.getBackBufferCapabilities();
+				logger.info("\t\t\tIs accelerated: " + bb.isAccelerated());
+				logger.info("\t\t\tIs volatile: " + bb.isTrueVolatile());
+				logger.info("\t\tConfiguration (FRONT): " + config.toString());
+				ImageCapabilities fc = config.getBufferCapabilities()
+						.getFrontBufferCapabilities();
+				logger.info("\t\t\tIs accelerated: " + fc.isAccelerated());
+				logger.info("\t\t\tIs volatile: " + fc.isTrueVolatile());
+			}
+		}
+		this.im = new InputManager(this);
 	}
 
 	public abstract void render(Graphics g);
@@ -50,14 +112,12 @@ public abstract class GameComponent extends Canvas implements Runnable {
 	public void init() {
 		this.parent.setIgnoreRepaint(true);
 		this.setIgnoreRepaint(true);
-		this.createBufferStrategy(1);
+		this.createBufferStrategy(2);
 		this.bufferStrategy = this.getBufferStrategy();
 		this.volatileBuffer = this.gc.createCompatibleVolatileImage(
 				this.getWidth(), this.getHeight());
-		
-		System.setProperty("sun.java2d.opengl", "true");
-		System.setProperty("apple.awt.graphics.UseQuartz","true");
-		System.setProperty("apple.awt.graphics.EnableQ2DX","true");
+		this.volatileBuffer.setAccelerationPriority(1.F);
+
 	}
 
 	/**
@@ -80,40 +140,74 @@ public abstract class GameComponent extends Canvas implements Runnable {
 	public void run() {
 		Graphics2D g = null;
 		long lastTime = System.currentTimeMillis();
-		long updateFPS = System.currentTimeMillis();
+		long lastUpdateFPS = System.currentTimeMillis();
+		long[] avgDelta = new long[FPS_AVG_HISTORY];
+		int frameCount = 0;
+		long deltaTarget = 1000 / DEFAULT_FPS;
 
 		this.gameRunning = true;
 
+		g = (Graphics2D) this.bufferStrategy.getDrawGraphics();
+		// g = this.volatileBuffer.createGraphics();
 		while (this.gameRunning) {
-			g = (Graphics2D) this.bufferStrategy.getDrawGraphics();
-			g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_SPEED);
-			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
-			g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_SPEED);
-			g.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_DISABLE);
-			g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-			g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
 			long delta = System.currentTimeMillis() - lastTime;
-			if (delta > (1000 / DEFAULT_FPS)) {
+			if (delta >= deltaTarget) {
 				lastTime = System.currentTimeMillis();
 				g.setColor(Color.black);
 				g.setBackground(Color.gray);
-				g.clearRect(0, 0, this.getWidth(),
-						this.getHeight());
+				g.clearRect(0, 0, this.getWidth(), this.getHeight());
 				this.update(delta);
 				this.render(g);
-				if (System.currentTimeMillis() - updateFPS >= 5000) {
-					System.out.println("FPS:" + (1000 / delta));
-					updateFPS = System.currentTimeMillis();
+				renderDebug(g);
+				avgDelta[(frameCount++) % FPS_AVG_HISTORY] = 1000 / delta;
+				if (System.currentTimeMillis() - lastUpdateFPS >= FPS_INTERVAL_MS) {
+					int avg = 0;
+					for (long val : avgDelta)
+						avg += val;
+					this.fps = avg = avg / FPS_AVG_HISTORY;
+					// System.out.println("FPS:" + this.fps);
+					lastUpdateFPS = System.currentTimeMillis();
 				}
 			} else {
 				try {
-					Thread.sleep(5, 0);
+					Thread.sleep(SLEEP_MS, SLEEP_NS);
 				} catch (InterruptedException e) {
 				}
 			}
-
 			this.bufferStrategy.show();
 		}
+	}
+
+	private void renderDebug(Graphics2D g) {
+		int x = this.getWidth() / 2;
+		int y = this.getHeight() / 2;
+		Vector2d vector = (Vector2d) this.im.mouseInput.mouseInfo.velocity.clone();
+		vector.scale(0.5D);
+		g.setColor(Color.GREEN);
+		g.drawLine(x, y, (int) this.im.mouseInput.mouseInfo.velocity.x + x,
+				(int) this.im.mouseInput.mouseInfo.velocity.y + y);
+		g.drawString("Mouse vector: (" + vector.x + ", " + vector.y + ")", 0,
+				40);
+		String mouseState = "";
+		switch (this.im.mouseInput.mouseInfo.state) {
+		case LEFT_CLICKING:
+			mouseState = "LEFT DOWN";
+			break;
+		case LEFT_RIGHT_CLICKING:
+			mouseState = "LEFT AND RIGHT DOWN";
+			break;
+		case MIDDLE_CLICKING:
+			mouseState = "MIDDLE DOWN";
+			break;
+		case RELEASED:
+			mouseState = "NOTHING DOWN";
+			break;
+		case RIGHT_CLICKING:
+			mouseState = "RIGHT DOWN";
+			break;
+		}
+		g.setColor(Color.RED);
+		g.drawString(mouseState, 0, 60);
 	}
 
 	public void setGameSize(int width, int height) {
@@ -134,5 +228,9 @@ public abstract class GameComponent extends Canvas implements Runnable {
 		this.world = world;
 		this.world.init();
 		this.world.start();
+	}
+
+	public int getFPS() {
+		return this.fps;
 	}
 }

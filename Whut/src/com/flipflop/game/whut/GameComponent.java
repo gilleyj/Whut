@@ -157,7 +157,7 @@ public abstract class GameComponent extends Canvas implements Runnable {
 		g.drawString("Mouse vector: (" + vector.x + ", " + vector.y + ")", 0,
 				40);
 		String mouseState = "";
-		switch (this.im.mouseInput.mouseInfo.state) {
+		switch (this.im.mouseInput.mouseInfo.getLatestState()) {
 		case LEFT_CLICKING:
 			mouseState = "LEFT DOWN";
 			break;

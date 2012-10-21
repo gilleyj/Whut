@@ -1,7 +1,9 @@
 package com.flipflop.game;
 
+import java.awt.AlphaComposite;
 import java.awt.Canvas;
 import java.awt.Color;
+import java.awt.Composite;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -9,13 +11,16 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
+import java.awt.Transparency;
 import java.awt.image.BufferStrategy;
+import java.awt.image.BufferedImage;
 import java.util.logging.Logger;
 
 import javax.vecmath.Vector2d;
 
 import com.flipflop.game.whut.input.InputManager;
 import com.flipflop.util.LogUtil;
+
 public abstract class GameComponent extends Canvas implements Runnable {
 	/** CONSTANTS **/
 	// Java Bullshit
@@ -33,7 +38,7 @@ public abstract class GameComponent extends Canvas implements Runnable {
 	// How many nanoseconds to sleep between frames (in addition to the
 	// milliseconds)
 	private static final int SLEEP_NS = 0;
-	
+
 	/** VARIABLES **/
 	// The "container" of the drawable window (this, hopefully)
 	protected Container parent = null;
@@ -45,7 +50,6 @@ public abstract class GameComponent extends Canvas implements Runnable {
 	// private VolatileImage volatileBuffer = null;
 	// GraphicsConfiguration is like window settings. Keep around for debugging
 	// for whenever.
-	@SuppressWarnings("unused")
 	private GraphicsConfiguration gc = null;
 	// The drawable window's size
 	private Dimension gameSize = new Dimension(500, 500);
@@ -57,6 +61,8 @@ public abstract class GameComponent extends Canvas implements Runnable {
 	private Color bgColor = Color.gray;
 	// Game's default font
 	private Font font = new Font(Font.MONOSPACED, Font.PLAIN, 12);
+	// Debug layer
+	private BufferedImage debugLayer = null;
 
 	public GameComponent(Container parent) {
 		// Set up this class's logger as the root and attach a simple console
@@ -66,9 +72,6 @@ public abstract class GameComponent extends Canvas implements Runnable {
 		this.gc = GraphicsEnvironment.getLocalGraphicsEnvironment()
 				.getDefaultScreenDevice().getDefaultConfiguration();
 
-		// Attach the input manager to the canvas because that's what the user
-		// will interact with.
-		this.im = new InputManager(this);
 	}
 
 	/**
@@ -106,6 +109,12 @@ public abstract class GameComponent extends Canvas implements Runnable {
 		// this.volatileBuffer = this.gc.createCompatibleVolatileImage(
 		// this.getWidth(), this.getHeight());
 		// this.volatileBuffer.setAccelerationPriority(1.F);
+		// Attach the input manager to the canvas because that's what the user
+		// will interact with.
+		this.im = new InputManager(this);
+		// Get a hopefully accelerated image.
+		this.debugLayer = this.gc.createCompatibleImage(this.getWidth(),
+				this.getHeight(), Transparency.TRANSLUCENT);
 
 	}
 
@@ -129,16 +138,16 @@ public abstract class GameComponent extends Canvas implements Runnable {
 	public void run() {
 		// Used for calculating the time between frames
 		long lastTime = System.currentTimeMillis();
-		
+
 		// Used for calculating the time between FPS reporting
 		long lastUpdateFPS = System.currentTimeMillis();
-		
+
 		// Frame delta history for averaging FPS
 		long[] avgDelta = new long[FPS_AVG_HISTORY];
-		
+
 		// Indexing into the fps history
 		int frameCount = 0;
-		
+
 		// The target delta so we know when we can sleep or when we're late.
 		long deltaTarget = 1000 / DEFAULT_FPS;
 
@@ -149,30 +158,36 @@ public abstract class GameComponent extends Canvas implements Runnable {
 		Graphics2D g = (Graphics2D) this.bufferStrategy.getDrawGraphics();
 		g.setFont(this.font);
 		// g = this.volatileBuffer.createGraphics();
-		
+
 		while (this.gameRunning) {
 			// Time since last frame
 			long delta = System.currentTimeMillis() - lastTime;
-			
+
 			if (delta >= deltaTarget) {
 				// Record when we create a frame
 				lastTime = System.currentTimeMillis();
-				
+
 				// Set up default colors for drawing.
 				g.setColor(Color.black);
 				g.setBackground(bgColor);
 				// Clear drawing area so no "leftovers".
 				g.clearRect(0, 0, this.getWidth(), this.getHeight());
-				
-				// Poll the inputs (some are synchronous, some are asynchronous...)
+
+				// Poll the inputs (some are synchronous, some are
+				// asynchronous...)
 				this.im.poll();
 				// Update the game with time elapsed
 				this.update(delta);
 				// Then render the updated game.
 				this.render(g);
-				// Then render some debug shit on top.
-				renderDebug(g);
 				
+				// Initialize debug layer
+				this.initDebugLayer();
+				// Then render some debug shit on a thing.
+				this.renderDebug(this.getDebugLayer());
+				// Put it on the main screen...
+				g.drawImage(this.debugLayer, null, 0, 0);
+
 				// Record this frames delta in seconds
 				avgDelta[(frameCount++) % FPS_AVG_HISTORY] = 1000 / delta;
 				if (System.currentTimeMillis() - lastUpdateFPS >= FPS_INTERVAL_MS) {
@@ -193,6 +208,18 @@ public abstract class GameComponent extends Canvas implements Runnable {
 			// You have to do this for reasons.
 			this.bufferStrategy.show();
 		}
+	}
+	
+	public void initDebugLayer() {
+		Graphics2D g = this.debugLayer.createGraphics();
+		Composite comp = g.getComposite();
+		g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
+		g.fillRect(0, 0, this.getWidth(), this.getHeight());
+		g.setComposite(comp);
+	}
+	
+	public Graphics2D getDebugLayer() {
+		return this.debugLayer.createGraphics();
 	}
 
 	private void renderDebug(Graphics2D g) {

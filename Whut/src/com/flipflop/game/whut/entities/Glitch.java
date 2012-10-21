@@ -1,10 +1,12 @@
-package com.flipflop.game.whut;
+package com.flipflop.game.whut.entities;
 
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+
+import com.flipflop.game.whut.world.World;
 
 public class Glitch extends BaseEntity {
 	private BufferedImage bi = null;

@@ -1,4 +1,4 @@
-package com.flipflop.game.whut;
+package com.flipflop.game.whut.input;
 
 import java.awt.Point;
 import java.awt.event.MouseEvent;
@@ -8,7 +8,8 @@ import java.awt.event.MouseMotionListener;
 import javax.swing.SwingUtilities;
 import javax.vecmath.Vector2d;
 
-import com.flipflop.game.whut.MouseInput.MouseInfo.PointInfo;
+import com.flipflop.collections.Shelf;
+import com.flipflop.game.whut.input.MouseInput.MouseInfo.PointInfo;
 
 /**
  * This class encompasses all information associated with the mouse, along with

@@ -1,4 +1,4 @@
-package com.flipflop.game.whut;
+package com.flipflop.game;
 
 import java.awt.Canvas;
 import java.awt.Color;
@@ -14,6 +14,8 @@ import java.util.logging.Logger;
 
 import javax.vecmath.Vector2d;
 
+import com.flipflop.game.whut.input.InputManager;
+import com.flipflop.util.LogUtil;
 public abstract class GameComponent extends Canvas implements Runnable {
 	/** CONSTANTS **/
 	// Java Bullshit

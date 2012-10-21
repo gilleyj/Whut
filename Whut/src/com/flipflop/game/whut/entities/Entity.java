@@ -1,4 +1,4 @@
-package com.flipflop.game.whut;
+package com.flipflop.game.whut.entities;
 
 import java.awt.Graphics;
 

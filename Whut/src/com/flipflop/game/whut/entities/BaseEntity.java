@@ -1,6 +1,8 @@
-package com.flipflop.game.whut;
+package com.flipflop.game.whut.entities;
 
 import java.awt.Graphics;
+
+import com.flipflop.game.whut.world.World;
 
 public abstract class BaseEntity implements Entity {
 	

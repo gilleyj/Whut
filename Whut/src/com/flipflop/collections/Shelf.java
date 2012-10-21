@@ -1,4 +1,4 @@
-package com.flipflop.game.whut;
+package com.flipflop.collections;
 
 import java.util.Collection;
 import java.util.LinkedList;

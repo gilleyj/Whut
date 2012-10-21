@@ -1,4 +1,4 @@
-package com.flipflop.game.whut;
+package com.flipflop.util;
 
 import java.util.logging.ConsoleHandler;
 import java.util.logging.LogManager;

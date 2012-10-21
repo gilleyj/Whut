@@ -6,6 +6,10 @@ import java.awt.Graphics;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
+import com.flipflop.game.GameComponent;
+import com.flipflop.game.whut.world.WhutWorld;
+import com.flipflop.game.whut.world.World;
+
 public class Whut extends GameComponent {
 
 	private static final long serialVersionUID = 8303829757030771706L;

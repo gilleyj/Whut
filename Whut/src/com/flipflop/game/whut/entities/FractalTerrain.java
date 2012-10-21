@@ -1,4 +1,4 @@
-package com.flipflop.game.whut;
+package com.flipflop.game.whut.entities;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -9,6 +9,8 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.DataBufferInt;
 import java.awt.image.WritableRaster;
+
+import com.flipflop.game.whut.world.World;
 
 public class FractalTerrain implements Entity {
 	private World world;

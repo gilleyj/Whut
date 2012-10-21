@@ -1,6 +1,8 @@
-package com.flipflop.game.whut;
+package com.flipflop.game.whut.world;
 
 import java.awt.Graphics;
+
+import com.flipflop.game.GameComponent;
 
 public interface World {
 	

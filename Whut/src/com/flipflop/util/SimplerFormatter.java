@@ -1,4 +1,4 @@
-package com.flipflop.game.whut;
+package com.flipflop.util;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;

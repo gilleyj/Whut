@@ -1,8 +1,12 @@
-package com.flipflop.game.whut;
+package com.flipflop.game.whut.world;
 
 import java.awt.Graphics;
 import java.util.LinkedList;
 import java.util.List;
+
+import com.flipflop.game.GameComponent;
+import com.flipflop.game.whut.entities.Entity;
+import com.flipflop.game.whut.entities.Glitch;
 
 public class WhutWorld implements World {
 	private GameComponent gc = null;

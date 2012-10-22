@@ -12,13 +12,14 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
 import java.awt.Transparency;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.util.logging.Logger;
 
 import javax.vecmath.Vector2d;
 
-import com.flipflop.game.whut.input.InputManager;
+import com.flipflop.game.input.InputManager;
 import com.flipflop.util.LogUtil;
 
 public abstract class GameComponent extends Canvas implements Runnable {
@@ -63,6 +64,8 @@ public abstract class GameComponent extends Canvas implements Runnable {
 	private Font font = new Font(Font.MONOSPACED, Font.PLAIN, 12);
 	// Debug layer
 	private BufferedImage debugLayer = null;
+	// Toggle debug information
+	private boolean isDebugOn = true;
 
 	public GameComponent(Container parent) {
 		// Set up this class's logger as the root and attach a simple console
@@ -111,11 +114,11 @@ public abstract class GameComponent extends Canvas implements Runnable {
 		// this.volatileBuffer.setAccelerationPriority(1.F);
 		// Attach the input manager to the canvas because that's what the user
 		// will interact with.
+		if (!this.requestFocusInWindow()) logger.warning("Can't get focus on window.");
 		this.im = new InputManager(this);
 		// Get a hopefully accelerated image.
 		this.debugLayer = this.gc.createCompatibleImage(this.getWidth(),
 				this.getHeight(), Transparency.TRANSLUCENT);
-
 	}
 
 	/**
@@ -172,6 +175,8 @@ public abstract class GameComponent extends Canvas implements Runnable {
 				g.setBackground(bgColor);
 				// Clear drawing area so no "leftovers".
 				g.clearRect(0, 0, this.getWidth(), this.getHeight());
+				// Initialize the debug layer for drawing.
+				if (this.isDebugOn) this.initDebugLayer();
 
 				// Poll the inputs (some are synchronous, some are
 				// asynchronous...)
@@ -181,12 +186,16 @@ public abstract class GameComponent extends Canvas implements Runnable {
 				// Then render the updated game.
 				this.render(g);
 				
-				// Initialize debug layer
-				this.initDebugLayer();
-				// Then render some debug shit on a thing.
-				this.renderDebug(this.getDebugLayer());
-				// Put it on the main screen...
-				g.drawImage(this.debugLayer, null, 0, 0);
+				if (this.im.keyboardInput.isKeyPulsed(KeyEvent.VK_F6)) {
+					this.isDebugOn = !this.isDebugOn;
+				}
+
+				if (this.isDebugOn) {
+					// Then render some debug shit on a thing.
+					this.renderDebug(this.getDebugLayer());
+					// Put it on the main screen...
+					g.drawImage(this.debugLayer, null, 0, 0);
+				}
 
 				// Record this frames delta in seconds
 				avgDelta[(frameCount++) % FPS_AVG_HISTORY] = 1000 / delta;
@@ -209,7 +218,7 @@ public abstract class GameComponent extends Canvas implements Runnable {
 			this.bufferStrategy.show();
 		}
 	}
-	
+
 	public void initDebugLayer() {
 		Graphics2D g = this.debugLayer.createGraphics();
 		Composite comp = g.getComposite();
@@ -217,22 +226,25 @@ public abstract class GameComponent extends Canvas implements Runnable {
 		g.fillRect(0, 0, this.getWidth(), this.getHeight());
 		g.setComposite(comp);
 	}
-	
+
 	public Graphics2D getDebugLayer() {
 		return this.debugLayer.createGraphics();
 	}
 
 	private void renderDebug(Graphics2D g) {
-		int x = this.getWidth() / 2;
-		int y = this.getHeight() / 2;
-		Vector2d vector = this.im.mouseInput.getAverageMouseVector();
-//		vector.scale(10.D);
+		int x = this.getWidth() / 8 * 7;
+		int y = this.getHeight() / 8 * 7;
+		g.setFont(this.font);
+		g.setColor(Color.BLACK);
+		g.drawString("FPS: " + String.valueOf(this.getFPS()), 0, 20);
 		g.setColor(Color.GREEN);
+		Vector2d vector = this.im.mouseInput.getAverageMouseVector();
+		vector.clamp(-1.D/8*this.getWidth(), 1.D/8 * this.getWidth());
 		g.drawLine(x, y, (int) vector.x + x, (int) vector.y + y);
 		g.drawString("Mouse vector: (" + vector.x + ", " + vector.y + ")", 0,
 				40);
 		String mouseState = this.im.mouseInput.mouseStatus();
-		
+
 		g.setColor(Color.RED);
 		g.drawString(mouseState, 0, 60);
 	}
@@ -264,5 +276,9 @@ public abstract class GameComponent extends Canvas implements Runnable {
 
 	public Color getBackgroundColor() {
 		return this.bgColor;
+	}
+	
+	public InputManager getInputManager() {
+		return this.im;
 	}
 }

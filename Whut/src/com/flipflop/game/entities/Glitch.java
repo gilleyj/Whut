@@ -1,4 +1,4 @@
-package com.flipflop.game.whut.entities;
+package com.flipflop.game.entities;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -6,7 +6,7 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 
-import com.flipflop.game.whut.world.World;
+import com.flipflop.game.world.World;
 
 public class Glitch extends BaseEntity {
 	private BufferedImage bi = null;
@@ -37,7 +37,7 @@ public class Glitch extends BaseEntity {
 	public void render(Graphics g) {
 		Graphics2D g2 = (Graphics2D) g;
 		
-		g2.drawImage(this.bi, null, this.xPos, this.yPos);
+		g2.drawImage(this.bi, null, (int) this.xPos, (int) this.yPos);
 	}
 
 	@Override
@@ -47,6 +47,16 @@ public class Glitch extends BaseEntity {
 		
 		this.xPos += xDelta;
 		this.yPos += yDelta;
+	}
+	@Override
+	protected void prepareToDie() {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	protected boolean isReadyForDeath() {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }

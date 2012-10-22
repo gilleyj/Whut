@@ -1,4 +1,4 @@
-package com.flipflop.game.whut.entities;
+package com.flipflop.game.entities;
 
 public class Fractal {
 	public static boolean isPowerOf2(int val) {

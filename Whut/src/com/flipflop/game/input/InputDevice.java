@@ -1,4 +1,4 @@
-package com.flipflop.game.whut.input;
+package com.flipflop.game.input;
 
 public interface InputDevice {
 	public void poll();

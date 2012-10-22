@@ -1,4 +1,4 @@
-package com.flipflop.game.whut.input;
+package com.flipflop.game.input;
 
 import java.awt.Component;
 

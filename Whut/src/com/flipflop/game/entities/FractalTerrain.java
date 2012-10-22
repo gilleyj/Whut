@@ -1,4 +1,4 @@
-package com.flipflop.game.whut.entities;
+package com.flipflop.game.entities;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -10,10 +10,9 @@ import java.awt.image.ColorModel;
 import java.awt.image.DataBufferInt;
 import java.awt.image.WritableRaster;
 
-import com.flipflop.game.whut.world.World;
+import com.flipflop.game.world.World;
 
-public class FractalTerrain implements Entity {
-	private World world;
+public class FractalTerrain extends BaseEntity {
 	private int width;
 	protected float[] array = null;
 	protected BufferedImage bi = null;
@@ -21,7 +20,7 @@ public class FractalTerrain implements Entity {
 	protected Dimension oldWorldDimension;
 
 	public FractalTerrain(World world, int width) {
-		this.world = world;
+		super(world);
 		this.oldWorldDimension = this.world.getGame().getSize();
 		int closestWidth = 2;
 		while (closestWidth * 2 <= width) {
@@ -82,5 +81,17 @@ public class FractalTerrain implements Entity {
 		for (int i = 0; i < data.length; i++) {
 			data[i] += change;
 		}
+	}
+
+	@Override
+	protected void prepareToDie() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	protected boolean isReadyForDeath() {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }

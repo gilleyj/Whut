@@ -7,8 +7,8 @@ import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
 import com.flipflop.game.GameComponent;
-import com.flipflop.game.whut.world.WhutWorld;
-import com.flipflop.game.whut.world.World;
+import com.flipflop.game.world.BaseWorld;
+import com.flipflop.game.world.World;
 
 public class Whut extends GameComponent {
 
@@ -47,7 +47,6 @@ public class Whut extends GameComponent {
 	@Override
 	public void render(Graphics g) {
 		this.world.render(g);
-		g.drawString("FPS: " + String.valueOf(super.getFPS()), 0, 20);
 	}
 
 	@Override
@@ -61,7 +60,7 @@ public class Whut extends GameComponent {
 		super.setGameSize(512, 512);
 		super.parent.addComponentListener(new WhutWindowListener(this));
 		super.setFocusTraversalKeysEnabled(false);
-		this.world = new WhutWorld(this);
+		this.world = new BaseWorld(this);
 		this.world.init();
 	}
 

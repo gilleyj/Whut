@@ -1,4 +1,4 @@
-package com.flipflop.game.whut.input;
+package com.flipflop.game.input;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -14,10 +14,14 @@ public class KeyboardInput implements KeyListener, InputDevice {
 	public class KeyInfo {
 		public KeyState keyState;
 		public long pressedSince;
+		public boolean pulse;
+		protected boolean pulsed;
 		
 		public KeyInfo() {
 			this.keyState = KeyState.RELEASED;
 			this.pressedSince = 0;
+			this.pulse = false;
+			this.pulsed = false;
 		}
 	}
 	
@@ -33,9 +37,18 @@ public class KeyboardInput implements KeyListener, InputDevice {
 	public boolean isKeyPressed(int keyCode) {
 		if (keyCode >= 0 && keyCode < KEY_COUNT) {
 			return (keysInfo[keyCode].keyState==KeyState.PRESSED?true:false);
-		} else {
-			return false;
 		}
+		return false;
+	}
+	
+	public boolean isKeyPulsed(int keyCode) {
+		if (keyCode >= 0 && keyCode < KEY_COUNT) {
+			if (keysInfo[keyCode].keyState==KeyState.PRESSED
+					&& keysInfo[keyCode].pulse) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override
@@ -65,6 +78,22 @@ public class KeyboardInput implements KeyListener, InputDevice {
 	}
 	
 	public void poll() {
+		for (KeyInfo info : this.keysInfo) {
+			if (info.keyState == KeyState.PRESSED) {
+				if (!info.pulsed) {
+					info.pulse = true; 
+					info.pulsed = true;
+				}
+				else {
+					info.pulse = false;
+				}
+			} else {
+				if (info.pulsed) {
+					info.pulse = false;
+					info.pulsed = false;
+				}
+			}
+		}
 	}
 
 }

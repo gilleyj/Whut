@@ -1,8 +1,11 @@
 package com.flipflop.game.world;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -11,7 +14,7 @@ import java.util.logging.Logger;
 import javax.vecmath.Vector2d;
 
 import com.flipflop.game.GameComponent;
-import com.flipflop.game.entities.Ball;
+import com.flipflop.game.entities.PrettyCircle;
 import com.flipflop.game.entities.DeathHook;
 import com.flipflop.game.entities.Entity;
 
@@ -46,21 +49,34 @@ public class BaseWorld implements World, DeathHook {
 		if (this.gc.getInputManager().keyboardInput.isKeyPulsed(KeyEvent.VK_B)) {
 			spawnBalls(100);
 		}
-		for (Entity entity : this.dyingEntities) {
-			this.entities.remove(entity);
-			logger.info("Buried " + entity.getName());
+		if (this.gc.getInputManager().keyboardInput.isKeyPulsed(KeyEvent.VK_O)) {
+			spawnBall();
 		}
-		this.dyingEntities.clear();
 		for(Entity entity : this.entities) {
 			entity.update(tm);
 			if (entity.isDead()) {
 				this.dyingEntities.add(entity);
 			}
 		}
+		for (Entity entity : this.dyingEntities) {
+			this.entities.remove(entity);
+			logger.info("Buried " + entity.getName());
+		}
+		this.dyingEntities.clear();
+		Collections.sort(this.entities, new Comparator<Entity>() {
+
+			@Override
+			public int compare(Entity o1, Entity o2) {
+				return o1.getDepth() > o2.getDepth() ? 1 : 
+						o1.getDepth() < o2.getDepth() ? -1 : 0;
+			}
+			
+		});
 	}
 
 	@Override
 	public void render(Graphics g) {
+		
 		for(Entity entity : this.entities) {
 			entity.render(g);
 		}
@@ -91,18 +107,34 @@ public class BaseWorld implements World, DeathHook {
 		this.dyingEntities.add(entity);
 	}
 	
-	private void spawnBall(int x, int y) {
-		Ball ball = new Ball(this);
+	private PrettyCircle spawnBall(int x, int y) {
+		PrettyCircle ball = new PrettyCircle(this);
 		ball.addForce(new Vector2d(0.0D, 98.1D));
 		ball.moveTo(x, y);
 		this.addEntity(ball);
+		return ball;
+	}
+	
+	private PrettyCircle spawnBall() {
+		Random rand = new Random(System.currentTimeMillis());
+		PrettyCircle ball = spawnBall((int) (rand.nextFloat() * this.gc.getWidth()), (int) (rand.nextFloat() * this.gc.getHeight()));
+		ball.addVelocity(new Vector2d(rand.nextDouble()*100-50, rand.nextDouble()*100-50));
+		ball.setColor(Color.red);
+		ball.setDepth(2);
+		
+		return ball;
 	}
 	
 	private void spawnBalls(int count) {
 		Random rand = new Random(System.currentTimeMillis());
 		for (int i=0; i<count; i++) {
-			spawnBall((int) (rand.nextFloat() * this.gc.getWidth()), (int) (rand.nextFloat() * this.gc.getHeight()));
+			PrettyCircle ball = spawnBall((int) (rand.nextFloat() * this.gc.getWidth()), (int) (rand.nextFloat() * this.gc.getHeight()));
+			ball.addVelocity(new Vector2d(rand.nextDouble()*100-50, rand.nextDouble()*100-50));
 		}
+		PrettyCircle ball = spawnBall((int) (rand.nextFloat() * this.gc.getWidth()), (int) (rand.nextFloat() * this.gc.getHeight()));
+		ball.addVelocity(new Vector2d(rand.nextDouble()*100-50, rand.nextDouble()*100-50));
+		ball.setColor(Color.blue);
+		ball.setDepth(1);
 	}
 
 }

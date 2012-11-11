@@ -29,6 +29,10 @@ public abstract class PhysicalEntity extends BaseEntity {
 	public void addForce(Vector2d force) {
 		this.forces.add(force);
 	}
+	
+	public void addVelocity(Vector2d velo) {
+		this.velocity.add(velo);
+	}
 
 	@Override
 	public void update(long tm) {
@@ -59,7 +63,7 @@ public abstract class PhysicalEntity extends BaseEntity {
 			displacement.scale(tc);
 			// Add initial displacement due to original velocity
 			displacement.add(di);
-			// Update velocity with new velocity.
+			// Update position with new position	.
 			this.moveTo((int) (displacement.x + this.xPos),
 					(int) (displacement.y + this.yPos));
 		}

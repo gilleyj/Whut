@@ -17,32 +17,31 @@ public class Circle implements Shape {
 	protected double y = 0;
 	
 	public Circle(double radius, double x, double y) {
-		this.radius = radius;
+		this.radius = radius-strokeWidth*2;
 		this.x = x;
 		this.y = y;
 	}
 	
-	public Circle(float radius) {
+	public Circle(double radius) {
 		this.radius = radius;
 	}
 
 	@Override
 	public void render(Graphics g) {
-		int radiusTwice = (int) (this.radius * 2);
-		int radiusHalf = (int) (this.radius * 0.5);
+		int diameter = (int) (this.radius * 2);
 		Graphics2D g2 = (Graphics2D) g;
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g2.setColor(this.fillColor);
-		g2.fillOval((int) (this.x - radiusHalf), 
-				(int) (this.y - radiusHalf), 
-				radiusTwice, 
-				radiusTwice);
+		g2.fillOval((int) (this.x - radius), 
+				(int) (this.y - radius), 
+				diameter, 
+				diameter);
 		g2.setColor(this.strokeColor);
 		g2.setStroke(this.stroke);
-		g2.drawOval((int) (this.x - radiusHalf), 
-				(int) (this.y - radiusHalf), 
-				radiusTwice, 
-				radiusTwice);
+		g2.drawOval((int) (this.x - radius), 
+				(int) (this.y - radius), 
+				diameter, 
+				diameter);
 	}
 
 	public Color getFillColor() {

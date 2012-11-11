@@ -16,6 +16,7 @@ public abstract class BaseEntity implements Entity {
 	protected List<DeathHook> deathHooks = null;
 	protected List<Animator> animators = null;
 	private boolean isDead;
+	private int zIndex = 0;
 
 	public BaseEntity(World world) {
 		this.world = world;
@@ -100,7 +101,27 @@ public abstract class BaseEntity implements Entity {
 
 	@Override
 	public String getName() {
-		return name;
+		return this.name;
+	}
+	
+	@Override
+	public void moveBack() {
+		this.zIndex--;
+	}
+	
+	@Override
+	public void moveForward() {
+		this.zIndex++;
+	}
+	
+	@Override
+	public void setDepth(int depth) {
+		this.zIndex = depth;
+	}
+	
+	@Override
+	public int getDepth() {
+		return this.zIndex;
 	}
 
 	protected void setName(String name) {
